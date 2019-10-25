@@ -1087,8 +1087,6 @@ var   arq,arqMDPE: TextFile; { declarando a variável "arq" do tipo arquivo texto
     pesoString,LarguraString,espessuraString,ComprimentoString,NomeArqMDPE: string;
     i    : integer;
     peso,Largura, espessura,Comprimento : Real;
-
-
 Begin
  try
    Result := '';
@@ -1134,7 +1132,8 @@ Begin
 
     // formatar a Espessura
     espessura := StrtoFloat(Edi17.Text);
-    espessuraString :=  FormatFloat( '#######,##0000.000' , espessura);
+//    espessuraString :=  FormatFloat( '#######,##000.0000' , espessura);
+    espessuraString :=  FormatFloat( '####,####000.0000' , espessura);
     espessuraString := StringReplace(espessuraString, '.', '', []);
     espessuraString := StringReplace(espessuraString, '.', '', []);
     espessuraString := StringReplace(espessuraString, ',', '.', []);
@@ -1192,9 +1191,10 @@ Begin
             LPad(Edi13.Text,' ',4)+ //06
             LPad(Edi18.Text,' ',20)+ //07
             LPad(Edi18.Text,' ',20)+ //08
-            LPad('SEM 3 '+IntToStr((i-1)),' ',20)+ //09
+            LPad(GetTokenAdv(linha,1,';',False),' ',20)+ //09
             LPad(Copy(GetTokenAdv(linha,3,';',False),1,60),' ',60)+ //10
-            LPad(' ',' ',60)+ //11
+            LPad(Copy(GetTokenAdv(linha,2,';',False),1,60),' ',60)+ //11
+            //LPad(' ',' ',60)+ //11
             LPad(' ',' ',15)+ //12
             LPad(Copy(GetTokenAdv(linha,4,';',False),1,60),' ',60)+ //13
             LPad(GetTokenAdv(linha,6,';',False),' ',40)+ //14
@@ -1204,7 +1204,8 @@ Begin
             LPad(' ',' ',08)+ //18 reserva  tecnica
             LPad(GetTokenAdv(linha,8,';',False),' ',70)+ //19 Cidade
             LPad(GetTokenAdv(linha,9,';',False),' ',02)+ //20 Estado
-            LPad(' ',' ',40)+ //21 referencia de Entrega
+            //LPad(' ',' ',40)+ //21 referencia de Entrega
+            LPad(GetTokenAdv(linha,11,';',False),' ',40)+ //21 referencia de Entrega
             'N'+ //22 reserva  tecnica
             FormatFloat('00000',StrtoInt('0'))+ //23 reserva  tecnica
             'N'+ //24 reserva  tecnica

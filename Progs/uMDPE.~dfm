@@ -26,7 +26,7 @@ object frmMDPE: TfrmMDPE
   end
   object SpeedButton1: TSpeedButton
     Left = 742
-    Top = 146
+    Top = 140
     Width = 23
     Height = 22
     Caption = '...'
