@@ -204,9 +204,6 @@ procedure TfrmMDPE.FormShow(Sender: TObject);
 begin
  Edi01.SetFocus;
  RadioGroup1.ItemIndex := 0;
-// RadioGroup1Click(Self);
-// GroupBox1.Enabled := false;
-// EnabledAsParent(GroupBox1);
 end;
 
 procedure TfrmMDPE.Edi01KeyPress(Sender: TObject; var Key: Char);
@@ -918,8 +915,6 @@ begin
           exit;
        end;
 
-
-
        // Como é um NOVO arquivo, não poderia existir!!
        if FileExists(EdiNome.Text) then
        begin
@@ -959,8 +954,6 @@ begin
           ShowMessage('Arquivo de Parametros, INCLUIDO com exito!');
           Button1.Enabled := False;
        end;
-
-
      end;
 
   1 :
@@ -1106,7 +1099,6 @@ Begin
 
     // Linha que compoém o OBJETOS
 
-
     // formatar o peso
     peso := StrtoFloat(Edi14.Text);
     pesoString :=  FormatFloat( '#######,##00000.00' , peso);
@@ -1132,14 +1124,11 @@ Begin
 
     // formatar a Espessura
     espessura := StrtoFloat(Edi17.Text);
-//    espessuraString :=  FormatFloat( '#######,##000.0000' , espessura);
     espessuraString :=  FormatFloat( '####,####000.0000' , espessura);
     espessuraString := StringReplace(espessuraString, '.', '', []);
     espessuraString := StringReplace(espessuraString, '.', '', []);
     espessuraString := StringReplace(espessuraString, ',', '.', []);
 
-
-    //pesoString := FormatFloat('0000000000',peso);
     if Edi12.Text = '' then
     Edi12.Text := '0';
 
@@ -1150,8 +1139,8 @@ Begin
                                    LPad(Edi13.Text,' ',4)+
                                    pesoString+
                                    larguraString+
-                                   ComprimentoString+
                                    espessuraString+
+                                   ComprimentoString+
                                    FormatFloat('0000000000',Qtde_Linhas_Arquivo)+
                                    LPad(Edi18.Text,' ',12); // preencher com brancos a esquerda
 
@@ -1194,7 +1183,6 @@ Begin
             LPad(GetTokenAdv(linha,1,';',False),' ',20)+ //09
             LPad(Copy(GetTokenAdv(linha,3,';',False),1,60),' ',60)+ //10
             LPad(Copy(GetTokenAdv(linha,2,';',False),1,60),' ',60)+ //11
-            //LPad(' ',' ',60)+ //11
             LPad(' ',' ',15)+ //12
             LPad(Copy(GetTokenAdv(linha,4,';',False),1,60),' ',60)+ //13
             LPad(GetTokenAdv(linha,6,';',False),' ',40)+ //14
@@ -1204,7 +1192,6 @@ Begin
             LPad(' ',' ',08)+ //18 reserva  tecnica
             LPad(GetTokenAdv(linha,8,';',False),' ',70)+ //19 Cidade
             LPad(GetTokenAdv(linha,9,';',False),' ',02)+ //20 Estado
-            //LPad(' ',' ',40)+ //21 referencia de Entrega
             LPad(GetTokenAdv(linha,11,';',False),' ',40)+ //21 referencia de Entrega
             'N'+ //22 reserva  tecnica
             FormatFloat('00000',StrtoInt('0'))+ //23 reserva  tecnica
@@ -1223,8 +1210,7 @@ Begin
             FormatFloat('000000000',StrtoInt('0'))+ //36 Valor declarado especifico
             'N'+ //37 Devolução Fisica
             'N'+ //38 carta Resposta
-            FormatFloat('00000000',1); //39 // quantidade de objtos
-//            FormatFloat('00000000',Qtde_Linhas_Arquivo); //39 // quantidade de objtos
+            FormatFloat('0000000',1); //39 // quantidade de objtos
             Writeln(arqMDPE, linha_Arquivo_Midia_Detalhes);
            end;
            inc(i);
