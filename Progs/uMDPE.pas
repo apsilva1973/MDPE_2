@@ -185,7 +185,8 @@ type
     { Private declarations }
   public
      procedure ExibeMensagem(mensagem: string);
-     function Exportacao_Arquivo_Eletronico_Postagem(Path_Arquivo_Destinatario: String;Qtde_Linhas_Arquivo: Integer;idx:integer) : boolean;
+     function Exportacao_Arquivo_Eletronico_Postagem(Path_Arquivo_Destinatario: String;Qtde_Linhas_Arquivo: Integer;idx:integer) : String;
+     function Renomear_Arquivo_Eletronico_Postagem(Path_Arquivo_Destinatario: String;Filesnames: String ) : boolean;
 
     { Public declarations }
   end;
@@ -1039,7 +1040,7 @@ end;
 
 procedure TfrmMDPE.BtnExportarClick(Sender: TObject);
 Var
- Path : String;
+ Path, FilesName : String;
  i,idx    : integer;
  CountRows : Integer;
 begin
@@ -1056,15 +1057,33 @@ begin
         FileListBox1.ItemIndex := i+1;
         ExibeMensagem('Exportando do Arquivo '+FileListBox1.Items[i]+' Aguarde...');
         CountRows := CountLinhasTxt(Path);
-        Exportacao_Arquivo_Eletronico_Postagem(Path,CountRows,idx);
+        FilesName := Exportacao_Arquivo_Eletronico_Postagem(Path,CountRows,idx);
+        Renomear_Arquivo_Eletronico_Postagem(Path,FilesName);
         inc(idx);
+        ExibeMensagem('Exportação do Arquivo '+FileListBox1.Items[i]+' Concluida!!');
       end;
    end;
+   ExibeMensagem('Exportação dos Arquivos Concluida!!');
+   ShowMessage('Exportação dos Arquivos Concluida!');
+   Label2.Visible := false;
+   lbDestino.Visible := false;
+   ediDestino.Visible := false;
+   ediDestino.Text := '';
+   SBDestino.Visible := false;
+   FileListBox1.Visible := false;
+   FileListBox1.Clear;
+   BtnExportar.Visible := false;
+   Label3.Visible := false;
+   lbExportar.Visible := false;
+   MeExportar.Visible := false;
+   MeExportar.Lines.Clear;
+
+
 end;
 
-function TfrmMDPE.Exportacao_Arquivo_Eletronico_Postagem(Path_Arquivo_Destinatario: String;Qtde_Linhas_Arquivo: Integer;idx:integer) : boolean;
+function TfrmMDPE.Exportacao_Arquivo_Eletronico_Postagem(Path_Arquivo_Destinatario: String;Qtde_Linhas_Arquivo: Integer;idx:integer) : String;
 var   arq,arqMDPE: TextFile; { declarando a variável "arq" do tipo arquivo texto }
-    linha,linha_Arquivo_Midia_Header,linha_Arquivo_Midia_Objetos,linha_Arquivo_Midia_Detalhes,
+    linha,linha_Arquivo_Midia_Header,linha_Arquivo_Midia_Objetos,linha_Arquivo_Midia_Detalhes,linha_Arquivo_Midia_rodape,
     pesoString,LarguraString,espessuraString,ComprimentoString,NomeArqMDPE: string;
     i    : integer;
     peso,Largura, espessura,Comprimento : Real;
@@ -1072,7 +1091,7 @@ var   arq,arqMDPE: TextFile; { declarando a variável "arq" do tipo arquivo texto
 
 Begin
  try
-   Result := false;
+   Result := '';
   try
     // Linha que compoém o HEADER
     linha_Arquivo_Midia_Header := '1P'+
@@ -1122,6 +1141,8 @@ Begin
 
 
     //pesoString := FormatFloat('0000000000',peso);
+    if Edi12.Text = '' then
+    Edi12.Text := '0';
 
     linha_Arquivo_Midia_Objetos := '3'+
                                    FormatFloat('0000000000',StrtoInt(Edi10.Text))+
@@ -1142,15 +1163,17 @@ Begin
       ExibeMensagem('Erro na abertura do arquivo !!!')
     else
      begin
-      // Importar todoas as linhas do arquivo.
        i:= 1;
 
-       NomeArqMDPE := 'PTG_'+FormatFloat('0000000000',StrtoInt(Edi01.Text)) +'_'+FormatDateTime('YYYYMMDD', Now) +'_'+InttoStr(idx);
+       NomeArqMDPE := 'PTG_'+FormatFloat('0000000000',StrtoInt(Edi01.Text)) +'_'+FormatDateTime('YYYYMMDD', Now) +'_'+InttoStr(idx)+'.dir';
        AssignFile(arqMDPE, ExtractFilePath(Path_Arquivo_Destinatario) + '\' + NomeArqMDPE);
        Rewrite(arqMDPE); { [ 2 ] Cria o arquivo texto "tabuada.txt" na unidade de disco "d" }
 
        Writeln(arqMDPE, linha_Arquivo_Midia_Header);
        Writeln(arqMDPE, linha_Arquivo_Midia_Objetos);
+
+       if Edi12.Text = '' then
+        Edi12.Text := '0';
 
        while (not eof(arq)) do
          begin
@@ -1158,23 +1181,81 @@ Begin
            // não lê a 1 linha, cabeçalho!!
            if i <> 1 then
            begin
+           // Importar todas as linhas do arquivo.  ==> Linhas Detalhe.
+            linha_Arquivo_Midia_Detalhes := '';
             ExibeMensagem('Lendo a Linha = ' + InttoStr(i-1) + ' do arquivo '+ ExtractFileName(Path_Arquivo_Destinatario));
-            
-            Writeln(arqMDPE, linha);
-
+            linha_Arquivo_Midia_Detalhes := '4'+ //01
+            FormatFloat('0000000000',(i-1))+ //02
+            FormatFloat('0000000000',StrtoInt(Edi10.Text))+ //03
+            LPad(Edi11.Text,' ',5)+ // preencher com brancos a esquerda //04
+            FormatFloat('0000000000',StrtoInt(Edi12.Text))+ //05
+            LPad(Edi13.Text,' ',4)+ //06
+            LPad(Edi18.Text,' ',20)+ //07
+            LPad(Edi18.Text,' ',20)+ //08
+            LPad('SEM 3 '+IntToStr((i-1)),' ',20)+ //09
+            LPad(Copy(GetTokenAdv(linha,3,';',False),1,60),' ',60)+ //10
+            LPad(' ',' ',60)+ //11
+            LPad(' ',' ',15)+ //12
+            LPad(Copy(GetTokenAdv(linha,4,';',False),1,60),' ',60)+ //13
+            LPad(GetTokenAdv(linha,6,';',False),' ',40)+ //14
+            LPad(GetTokenAdv(linha,5,';',False),' ',10)+ //15
+            LPad(GetTokenAdv(linha,7,';',False),' ',60)+ //16
+            LPad(GetTokenAdv(linha,10,';',False),' ',08)+ //17
+            LPad(' ',' ',08)+ //18 reserva  tecnica
+            LPad(GetTokenAdv(linha,8,';',False),' ',70)+ //19 Cidade
+            LPad(GetTokenAdv(linha,9,';',False),' ',02)+ //20 Estado
+            LPad(' ',' ',40)+ //21 referencia de Entrega
+            'N'+ //22 reserva  tecnica
+            FormatFloat('00000',StrtoInt('0'))+ //23 reserva  tecnica
+            'N'+ //24 reserva  tecnica
+            FormatFloat('00',StrtoInt('0'))+ //25 reserva  tecnica
+            'N'+ //26 reserva  tecnica
+            LPad(' ',' ',60)+ //27 - Dica de entrega
+            LPad(' ',' ',10)+ //28 - reserva  tecnica
+            LPad(' ',' ',10)+ //29 - reserva  tecnica
+            'N'+ //30 Registro
+            LPad(' ',' ',13)+ //31 - reserva  Codigo de barras, Objeto registrado
+            'N'+ //32 Aviso de Recebimento
+            LPad(' ',' ',70)+ //33 - Declaração de Counteudo
+            'N'+ //34 Mão propria
+            'N'+ //35 valor Declarado
+            FormatFloat('000000000',StrtoInt('0'))+ //36 Valor declarado especifico
+            'N'+ //37 Devolução Fisica
+            'N'+ //38 carta Resposta
+            FormatFloat('00000000',1); //39 // quantidade de objtos
+//            FormatFloat('00000000',Qtde_Linhas_Arquivo); //39 // quantidade de objtos
+            Writeln(arqMDPE, linha_Arquivo_Midia_Detalhes);
            end;
            inc(i);
          end;
-
      end;
    Except
     ExibeMensagem('Erro na linha - ' + linha + ' Verificar.');
-    Result := false;
+    Result := NomeArqMDPE;
    end;
  finally
   CloseFile(arq);
  end;
 
+ // Rodapé
+ linha_Arquivo_Midia_rodape := '5'+
+                               FormatFloat('000000000000000000000000000000000000000000000000000000000000000000000000000',0)+ //campos do 02 ao 08
+                               FormatFloat('0000000000',Qtde_Linhas_Arquivo); //39 // quantidade total de obejtos
+
+ Writeln(arqMDPE, linha_Arquivo_Midia_rodape);
+
+ CloseFile(arqMDPE);
+ Result := NomeArqMDPE;
+
+end;
+
+function TfrmMDPE.Renomear_Arquivo_Eletronico_Postagem(Path_Arquivo_Destinatario: String;Filesnames: String) : boolean;
+Var
+Path, Files, mostrar : String;
+begin
+  Path  := ExtractFileDir(Path_Arquivo_Destinatario);
+  Files := ExtractFileName(Path_Arquivo_Destinatario);
+  RenameFile(Path_Arquivo_Destinatario,Path+ '\' +Copy(ExtractFileName(Files),1,Length(Files)-4) + '_' + Copy(ExtractFileName(Filesnames),1,Length(Filesnames)-4) + '.csv' );
 end;
 
 end.
